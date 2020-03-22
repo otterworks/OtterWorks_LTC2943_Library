@@ -73,36 +73,19 @@ class OtterWorks_LTC2943 {
     // (see p. 15 of datasheet)
 
     int32_t _sensorID;
-    float _sense_resistance; // TODO: where do we want to set this?
-
-/*! from bayarveli/Linduino-LTC2943-Arduino-Library LTC2943.h
-| Conversion Constants                              |  Value   |
-| :------------------------------------------------ | :------: |
-| LTC2943_CHARGE_lsb                                | 0.34  mAh|
-| LTC2943_VOLTAGE_lsb                               | 1.44   mV|
-| LTC2943_CURRENT_lsb                               |  29.3  uV|
-| LTC2943_TEMPERATURE_lsb                           | 0.25    C|
-| LTC2943_FULLSCALE_VOLTAGE                         |  23.6   V|
-| LTC2943_FULLSCALE_CURRENT                         |  60    mV|
-| LTC2943_FULLSCALE_TEMPERATURE                     | 510     K|
-*/
+    float _resistance; // TODO: where do we want to set this?
+    uint16_t _prescalar; // TODO: where to we set/get this?
 
     const struct {
-        float charge_lsb;
-        float potential_lsb;
-        float current_lsb;
-        float temperature_lsb;
-        float potential_fs;
-        float current_fs;
-        float temperature_fs;
-    } _conversion_constants = {
-        .charge_lsb = 0.34e-3,
-        .potential_lsb = 1.44e-3,
-        .current_lsb = 29.3e-6,
-        .temperature_lsb = 0.25,
-        .potential_fs = 23.6,
-        .current_fs = 60e-3,
-        .temperature_fs = 510
+        float temperature;
+        float charge;
+        float potential;
+        float current;
+    } _conversion_constant = {
+        .temperature = 510,
+        .charge = 0.34e-3,
+        .potential = 23.6,
+        .current = 60e-3
     };
 
     // TODO: struct for each register, as in BME280 example

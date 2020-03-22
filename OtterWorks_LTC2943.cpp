@@ -68,35 +68,32 @@ uint16_t OtterWorks_LTC2943::read16(byte reg) {
   _wire->endTransmission();
   _wire->requestFrom((uint8_t)_i2caddr, (byte)2);
   value = (_wire->read() << 8) | _wire->read();
+  // TODO: swap reads ^ if I got the endianness backward
+  //       LTC2943 communicates BE, Arduino operates LE
   return value;
 }
 
-uint16_t OtterWorks_LTC2943::read16_LE(byte reg) {
-  uint16_t temp = read16(reg);
-  return (temp >> 8) | (temp << 8);
-}
-int16_t OtterWorks_LTC2943::readS16(byte reg) {
-  return (int16_t)read16(reg);
-}
-
-int16_t OtterWorks_LTC2943::readS16_LE(byte reg) {
-  return (int16_t)read16_LE(reg);
-}
-
 float OtterWorks_LTC2943::readTemperature(void) {
-  return 0.0;
+  float x = (float)read16(temperature_register);
+  return (_conversion_constant.temperature/MAX_UNSIGNED_SHORT)*x - 273.15;
 }
 
 float OtterWorks_LTC2943::readCharge(void) {
-  return 0.0;
+  uint16_t u = read16(charge_register);
+  float x = (3600.0 / 4096.0) * 50e-3 * _prescalar * u;
+  //TODO: name magic numbers ^
+  return (_conversion_constant.charge/_resistance)*x;
 }
 
 float OtterWorks_LTC2943::readPotential(void) {
-  return 0.0;
+  float x = (float)read16(potential_register);
+  return (_conversion_constant.potential/MAX_UNSIGNED_SHORT)*x;
 }
 
 float OtterWorks_LTC2943::readCurrent(void) {
-  return 0.0;
+  uint16_t u = read16(potential_register);
+  float x = (float)(u - MAX_SHORT)/(MAX_SHORT)
+  return (_conversion_constant.current/_resistance)*x;
 }
 
 uint32_t OtterWorks_LTC2943::sensorID(void) {
