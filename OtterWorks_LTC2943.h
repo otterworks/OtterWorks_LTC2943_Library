@@ -8,12 +8,35 @@
 #include <Adafruit_Sensor.h> // use Adafruit's nice unified sensor framework
 #include <Wire.h>
 
-#define LTC2943_ADDRESS (0x64) // hard-coded I2C address b1100100 = 0x64 = 100 (see p. 15 of datasheet)
+#define LTC2943_ADDRESS (0x64)
+
+#define _I2C_ALERT_RESPONSE (0x0c) // TODO: do we need/want this?
+#define _DISABLE_ALCC_PIN (0x00) // TODO: do we need/want this?
 
 // TODO: copy register addresses from bayarveli Linduino library
 
 class OtterWorks_LTC2943 {
   public:
+    enum {
+        SLEEP = 0x00,
+        SHUTDOWN = 0x01,
+        CHARGE_COMPLETE = 0x02,
+        ALERT = 0x04,
+        MANUAL = 0x40,
+        SCAN = 0x80,
+        AUTO = 0xc0
+    };
+    enum prescalar_magnitude {
+        PRESCALAR_1 = 0x00,
+        PRESCALAR_4 = 0x80,
+        PRESCALAR_16 = 0x10,
+        PRESCALAR_64 = 0x18,
+        PRESCALAR_256 = 0x20,
+        PRESCALAR_1024 = 0x28,
+        PRESCALAR_4096 = 0x30,
+        PRESCALAR_4096_2 = 0x31
+    };
+
     OtterWorks_LTC2943();
     ~OtterWorks_LTC2943(void);
 
@@ -45,11 +68,46 @@ class OtterWorks_LTC2943 {
     uint16_t read16_LE( byte reg );
     int16_t readS16_LE( byte reg );
 
-    uint8_t _i2caddr;
+    const uint8_t _i2caddr = 0x64;
+    // ^ hard-coded I2C address 0b1100100 = 0x64 = 100
+    // (see p. 15 of datasheet)
+
     int32_t _sensorID;
     float _sense_resistance; // TODO: where do we want to set this?
 
+/*! from bayarveli/Linduino-LTC2943-Arduino-Library LTC2943.h
+| Conversion Constants                              |  Value   |
+| :------------------------------------------------ | :------: |
+| LTC2943_CHARGE_lsb                                | 0.34  mAh|
+| LTC2943_VOLTAGE_lsb                               | 1.44   mV|
+| LTC2943_CURRENT_lsb                               |  29.3  uV|
+| LTC2943_TEMPERATURE_lsb                           | 0.25    C|
+| LTC2943_FULLSCALE_VOLTAGE                         |  23.6   V|
+| LTC2943_FULLSCALE_CURRENT                         |  60    mV|
+| LTC2943_FULLSCALE_TEMPERATURE                     | 510     K|
+*/
+
+    const struct {
+        float charge_lsb;
+        float potential_lsb;
+        float current_lsb;
+        float temperature_lsb;
+        float potential_fs;
+        float current_fs;
+        float temperature_fs;
+    } _conversion_constants = {
+        .charge_lsb = 0.34e-3,
+        .potential_lsb = 1.44e-3,
+        .current_lsb = 29.3e-6,
+        .temperature_lsb = 0.25,
+        .potential_fs = 23.6,
+        .current_fs = 60e-3,
+        .temperature_fs = 510
+    };
+
     // TODO: struct for each register, as in BME280 example
+    //A status_register;
+    //B control_register;
 }
 
 class OtterWorks_LTC2943_Temperature : public Adafruit_Sensor {
