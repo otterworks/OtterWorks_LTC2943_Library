@@ -8,7 +8,6 @@
 #include <Adafruit_Sensor.h> // use Adafruit's nice unified sensor framework
 #include <Wire.h>
 
-#define LTC2943_CHIPID 0x00 // TODO: what is it really?
 #define _I2C_ALERT_RESPONSE (0x0c) // TODO: do we need/want this?
 
 class OtterWorks_LTC2943; // forward declaration for unified sensor framework
@@ -96,15 +95,12 @@ class OtterWorks_LTC2943 {
     ~OtterWorks_LTC2943(void);
 
     bool begin( float resistance, uint16_t prescalar, TwoWire *theWire = &Wire );
-    bool init(); // TODO: should all the mode settings be done in init?
-    void setMode();
+    bool init();
 
     float readTemperature(void);
     float readCharge(void);
     float readPotential(void);
     float readCurrent(void);
-
-    uint32_t sensorID(void);
 
     Adafruit_Sensor *getTemperatureSensor(void);
     Adafruit_Sensor *getChargeSensor(void);
@@ -126,7 +122,6 @@ class OtterWorks_LTC2943 {
     const byte _potential_register = 0x08;
     const byte _current_register = 0x0e;
     const byte _temperature_register = 0x14;
-    const byte _chip_id_register = 0x00; // TODO: get the real one
 
     int32_t _sensorID;
     float _resistance;

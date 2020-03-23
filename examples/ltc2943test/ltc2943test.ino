@@ -9,8 +9,6 @@ void setup() {
 
     if(!ltc2943.begin(0.5, 4096, &Wire)) { // TODO: avoid passing &Wire
         Serial.println("No LTC2943 found on I2C bus.");
-        Serial.print("Expected sensor to answer at ID 0x");
-        Serial.println(ltc2943.sensorID(), HEX);
         while(true) {
             delay(10);
         }

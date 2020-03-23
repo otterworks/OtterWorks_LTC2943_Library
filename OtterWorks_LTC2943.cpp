@@ -30,21 +30,11 @@ bool OtterWorks_LTC2943::begin( float resistance, uint16_t prescalar, TwoWire *t
 bool OtterWorks_LTC2943::init(  ) {
   _wire->begin();
 
-  _sensorID = read8( _chip_id_register );
-  if (_sensorID != LTC2943_CHIPID) {
-    return false;
-  }
-
   // soft reset?
 
   // set mode and start
-  setMode();
 
   return true;
-}
-
-void OtterWorks_LTC2943::setMode() {
-  Serial.println( "TODO: manipulate registers here" );
 }
 
 void OtterWorks_LTC2943::write8(byte reg, byte value) {
@@ -97,10 +87,6 @@ float OtterWorks_LTC2943::readCurrent(void) {
   uint16_t u = read16(_current_register);
   float x = (float)(u - SHRT_MAX)/(SHRT_MAX);
   return (_conversion_constant.current/_resistance)*x;
-}
-
-uint32_t OtterWorks_LTC2943::sensorID(void) {
-  return _sensorID;
 }
 
 Adafruit_Sensor *OtterWorks_LTC2943::getTemperatureSensor(void) {
