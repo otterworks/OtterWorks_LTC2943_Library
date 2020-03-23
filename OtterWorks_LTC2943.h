@@ -11,30 +11,38 @@
 #define LTC2943_ADDRESS (0x64)
 
 #define _I2C_ALERT_RESPONSE (0x0c) // TODO: do we need/want this?
-#define _DISABLE_ALCC_PIN (0x00) // TODO: do we need/want this?
 
 
 class OtterWorks_LTC2943 {
   public:
-    enum {
-        SLEEP = 0x00,
-        SHUTDOWN = 0x01,
-        CHARGE_COMPLETE = 0x02,
-        ALERT = 0x04,
-        MANUAL = 0x40,
-        SCAN = 0x80,
-        AUTO = 0xc0
+    enum { // PRESCALAR
+        PRESCALAR_1 = 0b000,
+        PRESCALAR_4 = 0b001,
+        PRESCALAR_16 = 0b010,
+        PRESCALAR_64 = 0b011,
+        PRESCALAR_256 = 0b100,
+        PRESCALAR_1024 = 0b101,
+        PRESCALAR_4096 = 0b110,
+        PRESCALAR_4096_2 = 0b111
     };
-    enum prescalar_magnitude {
-        PRESCALAR_1 = 0x00,     // 2^0
-        PRESCALAR_4 = 0x80,     // 2^2
-        PRESCALAR_16 = 0x10,    // 2^4
-        PRESCALAR_64 = 0x18,    // 2^6
-        PRESCALAR_256 = 0x20,   // 2^8
-        PRESCALAR_1024 = 0x28,  // 2^10
-        PRESCALAR_4096 = 0x30,  // 2^12
-        PRESCALAR_4096_2 = 0x31 // 2^14?
+    enum { // MODE
+        SLEEP = 0b00,
+        MANUAL = 0b01,
+        SCAN = 0b10,
+        AUTO = 0b11
     };
+
+    struct config {
+        uint8_t none : 1; // unused, don't set
+        uint8_t charge_complete : 1;
+        uint8_t alert : 1;
+        uint8_t prescalar : 3;
+        uint8_t mode : 2;
+        uint8_t get() { // TODO: Do you really need a get method?
+          return ( mode << 6 | prescalar << 3 | alert << 2 | charge_complete < 1 | none );
+        }
+    }
+    config _configReg;
 
     OtterWorks_LTC2943();
     ~OtterWorks_LTC2943(void);
@@ -67,9 +75,13 @@ class OtterWorks_LTC2943 {
     uint16_t read16_LE( byte reg );
     int16_t readS16_LE( byte reg );
 
-    const uint8_t _i2caddr = 0x64;
+    const uint8_t _i2caddr = 0b1100100;
     // ^ hard-coded I2C address 0b1100100 = 0x64 = 100
     // (see p. 15 of datasheet)
+    const byte _chargeReg = 0x02;
+    const byte _potentialReg = 0x08;
+    const byte _currentReg = 0x0e;
+    const byte _potentialReg = 0x14;
 
     int32_t _sensorID;
     float _resistance; // TODO: where do we want to set this?
