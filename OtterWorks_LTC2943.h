@@ -13,7 +13,6 @@
 #define _I2C_ALERT_RESPONSE (0x0c) // TODO: do we need/want this?
 #define _DISABLE_ALCC_PIN (0x00) // TODO: do we need/want this?
 
-// TODO: copy register addresses from bayarveli Linduino library
 
 class OtterWorks_LTC2943 {
   public:
@@ -27,14 +26,14 @@ class OtterWorks_LTC2943 {
         AUTO = 0xc0
     };
     enum prescalar_magnitude {
-        PRESCALAR_1 = 0x00,
-        PRESCALAR_4 = 0x80,
-        PRESCALAR_16 = 0x10,
-        PRESCALAR_64 = 0x18,
-        PRESCALAR_256 = 0x20,
-        PRESCALAR_1024 = 0x28,
-        PRESCALAR_4096 = 0x30,
-        PRESCALAR_4096_2 = 0x31
+        PRESCALAR_1 = 0x00,     // 2^0
+        PRESCALAR_4 = 0x80,     // 2^2
+        PRESCALAR_16 = 0x10,    // 2^4
+        PRESCALAR_64 = 0x18,    // 2^6
+        PRESCALAR_256 = 0x20,   // 2^8
+        PRESCALAR_1024 = 0x28,  // 2^10
+        PRESCALAR_4096 = 0x30,  // 2^12
+        PRESCALAR_4096_2 = 0x31 // 2^14?
     };
 
     OtterWorks_LTC2943();
@@ -75,6 +74,8 @@ class OtterWorks_LTC2943 {
     int32_t _sensorID;
     float _resistance; // TODO: where do we want to set this?
     uint16_t _prescalar; // TODO: where to we set/get this?
+    // _prescalar value should match PRESCALAR_MODE; example has both 4096
+    // so we should probably get it by reading the register and using the enum
 
     const struct {
         float temperature;
