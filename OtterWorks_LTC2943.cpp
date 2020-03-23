@@ -1,4 +1,5 @@
 #include "OtterWorks_LTC2943.h" // includes Wire.h
+#include <limits.h>
 
 OtterWorks_LTC2943::OtterWorks_LTC2943(){};
 
@@ -17,9 +18,10 @@ OtterWorks_LTC2943::~OtterWorks_LTC2943( void ) {
   }
 };
 
-bool OtterWorks_LTC2943::begin(  ) {
+bool OtterWorks_LTC2943::begin( float resistance, uint16_t prescalar, TwoWire *theWire ) {
   bool status = false;
-  _i2caddr = addr;
+  _resistance = resistance;
+  _prescalar = prescalar;
   _wire = theWire;
   status = init();
   return status;
@@ -28,7 +30,7 @@ bool OtterWorks_LTC2943::begin(  ) {
 bool OtterWorks_LTC2943::init(  ) {
   _wire->begin();
 
-  _sensorID = read8(LTC2943_REGISTER_CHIPID);
+  _sensorID = read8( _chip_id_register );
   if (_sensorID != LTC2943_CHIPID) {
     return false;
   }
@@ -41,8 +43,8 @@ bool OtterWorks_LTC2943::init(  ) {
   return true;
 }
 
-OtterWorks_LTC2943::setMode() {
-  // manipulate the registers here...
+void OtterWorks_LTC2943::setMode() {
+  Serial.println( "TODO: manipulate registers here" );
 }
 
 void OtterWorks_LTC2943::write8(byte reg, byte value) {
@@ -59,6 +61,7 @@ uint8_t OtterWorks_LTC2943::read8(byte reg) {
   _wire->endTransmission();
   _wire->requestFrom((uint8_t)_i2caddr, (byte)1);
   value = _wire->read();
+  return value;
 }
 
 uint16_t OtterWorks_LTC2943::read16(byte reg) {
@@ -74,25 +77,25 @@ uint16_t OtterWorks_LTC2943::read16(byte reg) {
 }
 
 float OtterWorks_LTC2943::readTemperature(void) {
-  float x = (float)read16(temperature_register);
-  return (_conversion_constant.temperature/MAX_UNSIGNED_SHORT)*x - 273.15;
+  float x = (float)read16(_temperature_register);
+  return (_conversion_constant.temperature/USHRT_MAX)*x - 273.15;
 }
 
 float OtterWorks_LTC2943::readCharge(void) {
-  uint16_t u = read16(charge_register);
+  uint16_t u = read16(_charge_register);
   float x = (3600.0 / 4096.0) * 50e-3 * _prescalar * u;
   //TODO: name magic numbers ^
   return (_conversion_constant.charge/_resistance)*x;
 }
 
 float OtterWorks_LTC2943::readPotential(void) {
-  float x = (float)read16(potential_register);
-  return (_conversion_constant.potential/MAX_UNSIGNED_SHORT)*x;
+  float x = (float)read16(_potential_register);
+  return (_conversion_constant.potential/USHRT_MAX)*x;
 }
 
 float OtterWorks_LTC2943::readCurrent(void) {
-  uint16_t u = read16(potential_register);
-  float x = (float)(u - MAX_SHORT)/(MAX_SHORT)
+  uint16_t u = read16(_current_register);
+  float x = (float)(u - SHRT_MAX)/(SHRT_MAX);
   return (_conversion_constant.current/_resistance)*x;
 }
 
@@ -156,7 +159,7 @@ bool OtterWorks_LTC2943_Charge::getEvent(sensors_event_t *event) {
   event->sensor_id = _sensorID;
   event->type = 0; // Adafruit_Sensor does not define a type for CHARGE
   event->timestamp = millis();
-  event->charge = _theLTC2943->readCharge();
+  // event->charge = _theLTC2943->readCharge();
   return true;
 }
 
@@ -186,7 +189,7 @@ bool OtterWorks_LTC2943_Potential::getEvent(sensors_event_t *event) {
   event->sensor_id = _sensorID;
   event->type = SENSOR_TYPE_VOLTAGE;
   event->timestamp = millis();
-  event->potential = _theLTC2943->readPotential();
+  event->voltage = _theLTC2943->readPotential();
   return true;
 }
 
