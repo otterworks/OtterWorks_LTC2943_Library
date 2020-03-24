@@ -62,34 +62,35 @@ class OtterWorks_LTC2943_Current : public Adafruit_Sensor {
 
 class OtterWorks_LTC2943 {
   public:
-    enum { // PRESCALAR
-        PRESCALAR_1 = 0b000,
-        PRESCALAR_4 = 0b001,
-        PRESCALAR_16 = 0b010,
-        PRESCALAR_64 = 0b011,
-        PRESCALAR_256 = 0b100,
-        PRESCALAR_1024 = 0b101,
-        PRESCALAR_4096 = 0b110,
-        PRESCALAR_4096_2 = 0b111
+    enum { // PRESCALER
+        PRESCALER_1 = 0b000,
+        PRESCALER_4 = 0b001,
+        PRESCALER_16 = 0b010,
+        PRESCALER_64 = 0b011,
+        PRESCALER_256 = 0b100,
+        PRESCALER_1024 = 0b101,
+        PRESCALER_4096 = 0b110,
+        PRESCALER_4096_2 = 0b111
     };
     enum { // MODE
-        SLEEP = 0b00,
-        MANUAL = 0b01,
-        SCAN = 0b10,
-        AUTO = 0b11
+        MODE_SLEEP = 0b00,
+        MODE_MANUAL = 0b01,
+        MODE_SCAN = 0b10,
+        MODE_AUTO = 0b11
     };
 
-    struct config {
-        uint8_t none : 1; // unused, don't set
+    typedef struct {
+        uint8_t shutdown : 1;
         uint8_t charge_complete : 1;
         uint8_t alert : 1;
-        uint8_t prescalar : 3;
+        uint8_t prescaler : 3;
         uint8_t mode : 2;
-        uint8_t get() { // TODO: Do you really need a get method?
-          return ( mode << 6 | prescalar << 3 | alert << 2 | charge_complete << 1 | none );
-        }
-    };
-    config _configReg;
+    } configuration_bitfield_t;
+
+    union {
+        configuration_bitfield_t f;
+        byte b;
+    } _configuration;
 
     OtterWorks_LTC2943();
     ~OtterWorks_LTC2943(void);
@@ -118,6 +119,7 @@ class OtterWorks_LTC2943 {
     const uint8_t _i2caddr = 0b1100100;
     // ^ hard-coded I2C address 0b1100100 = 0x64 = 100
     // (see p. 15 of datasheet)
+    const byte _control_register = 0x01;
     const byte _charge_register = 0x02;
     const byte _potential_register = 0x08;
     const byte _current_register = 0x0e;
@@ -125,9 +127,7 @@ class OtterWorks_LTC2943 {
 
     int32_t _sensorID;
     float _resistance;
-    uint16_t _prescalar;
-    // _prescalar value should match PRESCALAR_MODE; example has both 4096
-    // so we should probably get it by reading the register and using the enum
+    uint16_t _prescaler;
     const struct {
         float temperature;
         float charge;
@@ -144,9 +144,5 @@ class OtterWorks_LTC2943 {
     uint8_t read8( byte reg );
     uint16_t read16( byte reg );
 };
-
-// extern OtterWorks_LTC2943 LTC2943;
-// ^ a named instance for use like Arduino's Serial
-// TODO: Why doesn't Adafruit do this for their BME280 library?
 
 #endif // __OW_LTC2943_H__

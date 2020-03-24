@@ -18,22 +18,50 @@ OtterWorks_LTC2943::~OtterWorks_LTC2943( void ) {
   }
 };
 
-bool OtterWorks_LTC2943::begin( float resistance, uint16_t prescalar, TwoWire *theWire ) {
-  bool status = false;
+bool OtterWorks_LTC2943::begin( float resistance, uint16_t prescaler, TwoWire *theWire ) {
   _resistance = resistance;
-  _prescalar = prescalar;
+  _prescaler = prescaler;
   _wire = theWire;
-  status = init();
-  return status;
+  return init();
 }
 
-bool OtterWorks_LTC2943::init(  ) {
+bool OtterWorks_LTC2943::init() {
   _wire->begin();
-
-  // soft reset?
-
-  // set mode and start
-
+  _configuration.f.mode = MODE_SCAN;
+  switch (_prescaler) {
+    case 4096:
+      _configuration.f.prescaler = PRESCALER_4096;
+      break;
+    case 1024:
+      _configuration.f.prescaler = PRESCALER_1024;
+      break;
+    case 256:
+      _configuration.f.prescaler = PRESCALER_256;
+      break;
+    case 64:
+      _configuration.f.prescaler = PRESCALER_64;
+      break;
+    case 16:
+      _configuration.f.prescaler = PRESCALER_16;
+      break;
+    case 4:
+      _configuration.f.prescaler = PRESCALER_4;
+      break;
+    case 1:
+    default:
+      _configuration.f.prescaler = PRESCALER_1;
+      break;
+  }
+  _configuration.f.charge_complete = 0;
+  _configuration.f.alert = 0;
+  _configuration.f.shutdown = 0;
+  Serial.print( "Writing configuration: 0b" );
+  Serial.print( _configuration.b, BIN );
+  Serial.print( " to control register: 0x" );
+  Serial.print( _control_register, HEX );
+  Serial.println();
+  write8( _control_register, _configuration.b );
+  // TODO: consider reading it back
   return true;
 }
 
@@ -73,7 +101,7 @@ float OtterWorks_LTC2943::readTemperature(void) {
 
 float OtterWorks_LTC2943::readCharge(void) {
   uint16_t u = read16(_charge_register);
-  float x = (3600.0 / 4096.0) * 50e-3 * _prescalar * u;
+  float x = (3600.0 / 4096.0) * 50e-3 * _prescaler * u;
   //TODO: name magic numbers ^
   return (_conversion_constant.charge/_resistance)*x;
 }
@@ -166,7 +194,7 @@ void OtterWorks_LTC2943_Potential::getSensor(sensor_t *sensor) {
   sensor->min_delay = 48e-3;
   sensor->min_value = +3.6; // minimum operating voltage
   sensor->max_value = +20.0; // maximum operating voltage
-  sensor->resolution = 1e-3; // depends on sense resistor & prescalar
+  sensor->resolution = 1e-3; // depends on sense resistor & prescaler
 }
 
 bool OtterWorks_LTC2943_Potential::getEvent(sensors_event_t *event) {
@@ -194,9 +222,9 @@ void OtterWorks_LTC2943_Current::getSensor(sensor_t *sensor) {
   sensor->sensor_id = _sensorID;
   sensor->type = SENSOR_TYPE_CURRENT;
   sensor->min_delay = 8e-3;
-  sensor->min_value = -4.0; // depends on sense resistor & prescalar
-  sensor->max_value = +4.0; // depends on sense resistor & prescalar
-  sensor->resolution = 1e-3; // depends on sense resistor & prescalar
+  sensor->min_value = -4.0; // depends on sense resistor & prescaler
+  sensor->max_value = +4.0; // depends on sense resistor & prescaler
+  sensor->resolution = 1e-3; // depends on sense resistor & prescaler
 }
 
 bool OtterWorks_LTC2943_Current::getEvent(sensors_event_t *event) {
