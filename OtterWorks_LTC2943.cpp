@@ -53,7 +53,7 @@ bool OtterWorks_LTC2943::init() {
       break;
   }
   _configuration.f.charge_complete = 0;
-  _configuration.f.alert = 0;
+  _configuration.f.alert = 1;
   _configuration.f.shutdown = 0;
   Serial.print( "Writing configuration: 0b" );
   Serial.print( _configuration.b, BIN );
