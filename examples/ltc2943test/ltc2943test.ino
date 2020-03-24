@@ -7,7 +7,7 @@ void setup() {
     while(!Serial); // wait
     Serial.println("OtterWorks LTC2943 Library Test");
 
-    if(!ltc2943.begin(0.5, 4096, &Wire)) { // TODO: avoid passing &Wire
+    if(!ltc2943.begin(4e-3, 4096, &Wire)) { // TODO: avoid passing &Wire
         Serial.println("No LTC2943 found on I2C bus.");
         while(true) {
             delay(10);
