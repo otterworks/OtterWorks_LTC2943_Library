@@ -18,10 +18,10 @@ OtterWorks_LTC2943::~OtterWorks_LTC2943( void ) {
   }
 };
 
-bool OtterWorks_LTC2943::begin( float resistance, uint16_t prescaler, TwoWire *theWire ) {
+bool OtterWorks_LTC2943::begin( float resistance, uint16_t prescaler ) {
   _resistance = resistance;
   _prescaler = prescaler;
-  _wire = theWire;
+  _wire = &Wire;
   return init();
 }
 

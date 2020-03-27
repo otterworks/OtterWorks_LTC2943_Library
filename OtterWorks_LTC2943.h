@@ -95,7 +95,7 @@ class OtterWorks_LTC2943 {
     OtterWorks_LTC2943();
     ~OtterWorks_LTC2943(void);
 
-    bool begin( float resistance, uint16_t prescalar, TwoWire *theWire = &Wire );
+    bool begin( float resistance, uint16_t prescalar );
     bool init();
 
     float readTemperature(void);

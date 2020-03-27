@@ -1,4 +1,4 @@
-#include <OtterWorks_LTC2943.h> // includes <Wire.h> for I2C
+#include <OtterWorks_LTC2943.h>
 
 OtterWorks_LTC2943 ltc2943;
 
@@ -7,7 +7,7 @@ void setup() {
     while(!Serial); // wait
     Serial.println("OtterWorks LTC2943 Library Test");
 
-    if(!ltc2943.begin(4e-3, 4096, &Wire)) { // TODO: avoid passing &Wire
+    if(!ltc2943.begin(4e-3, 4096)) {
         Serial.println("No LTC2943 found on I2C bus.");
         while(true) {
             delay(10);
