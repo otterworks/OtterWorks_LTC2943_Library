@@ -6,7 +6,7 @@
 #include "Arduino.h"
 
 #include <Adafruit_Sensor.h> // use Adafruit's nice unified sensor framework
-#include <Wire.h>
+#include <I2C.h> // DSSCircuits I2C Master Library
 
 #define _I2C_ALERT_RESPONSE (0x0c) // TODO: do we need/want this?
 
@@ -95,7 +95,7 @@ class OtterWorks_LTC2943 {
     OtterWorks_LTC2943();
     ~OtterWorks_LTC2943(void);
 
-    bool begin( float resistance, uint16_t prescalar, TwoWire *theWire = &Wire );
+    bool begin( float resistance, uint16_t prescalar );
     bool init();
 
     float readTemperature(void);
@@ -109,7 +109,7 @@ class OtterWorks_LTC2943 {
     Adafruit_Sensor *getCurrentSensor(void);
 
   protected:
-    TwoWire *_wire;
+    I2C *_wire;
 
     OtterWorks_LTC2943_Temperature *temperature_sensor = NULL;
     OtterWorks_LTC2943_Charge *charge_sensor = NULL;

@@ -18,10 +18,10 @@ OtterWorks_LTC2943::~OtterWorks_LTC2943( void ) {
   }
 };
 
-bool OtterWorks_LTC2943::begin( float resistance, uint16_t prescaler, TwoWire *theWire ) {
+bool OtterWorks_LTC2943::begin( float resistance, uint16_t prescaler ) {
   _resistance = resistance;
   _prescaler = prescaler;
-  _wire = theWire;
+  _wire = &I2c;
   return init();
 }
 
@@ -66,30 +66,21 @@ bool OtterWorks_LTC2943::init() {
 }
 
 void OtterWorks_LTC2943::write8(byte reg, byte value) {
-  _wire->beginTransmission((uint8_t)_i2caddr);
-  _wire->write((uint8_t)reg);
-  _wire->write((uint8_t)value);
-  _wire->endTransmission();
+  _wire->write( (uint8_t)_i2caddr, (uint8_t)reg, (uint8_t)value );
 }
 
 uint8_t OtterWorks_LTC2943::read8(byte reg) {
   uint8_t value;
-  _wire->beginTransmission((uint8_t)_i2caddr);
-  _wire->write((uint8_t)reg);
-  _wire->endTransmission();
-  _wire->requestFrom((uint8_t)_i2caddr, (byte)1);
-  value = _wire->read();
+  _wire->read( (uint8_t)_i2caddr, (uint8_t)reg, (uint8_t)1 );
+  value = _wire->receive();
   return value;
 }
 
 uint16_t OtterWorks_LTC2943::read16(byte reg) {
   uint16_t value;
-  _wire->beginTransmission((uint8_t)_i2caddr);
-  _wire->write((uint8_t)reg);
-  _wire->endTransmission();
-  _wire->requestFrom((uint8_t)_i2caddr, (byte)2);
-  value = (_wire->read() << 8) | _wire->read();
-  // TODO: swap reads ^ if I got the endianness backward
+  _wire->read( (uint8_t)_i2caddr, (uint8_t)reg, (uint8_t)2 );
+  value = (_wire->receive() << 8) | _wire->receive();
+  // TODO: swap receives ^ if I got the endianness backward
   //       LTC2943 communicates BE, Arduino operates LE
   return value;
 }
