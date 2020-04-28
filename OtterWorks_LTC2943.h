@@ -140,7 +140,7 @@ class OtterWorks_LTC2943 {
         .current = 60e-3
     };
 
-    void write8( byte reg, byte value );
+    bool write8( byte reg, byte value );
     uint8_t read8( byte reg );
     uint16_t read16( byte reg );
 };

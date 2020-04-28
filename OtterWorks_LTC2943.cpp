@@ -55,66 +55,96 @@ bool OtterWorks_LTC2943::init() {
   _configuration.f.charge_complete = 0;
   _configuration.f.alert = 1;
   _configuration.f.shutdown = 0;
+  
   Serial.print( "Writing configuration: 0b" );
   Serial.print( _configuration.b, BIN );
   Serial.print( " to control register: 0x" );
   Serial.print( _control_register, HEX );
   Serial.println();
-  write8( _control_register, _configuration.b );
+  return write8( _control_register, _configuration.b );
   // TODO: consider reading it back
-  return true;
 }
 
-void OtterWorks_LTC2943::write8(byte reg, byte value) {
+bool OtterWorks_LTC2943::write8(byte reg, byte value) {
   _wire->beginTransmission((uint8_t)_i2caddr);
   _wire->write((uint8_t)reg);
   _wire->write((uint8_t)value);
-  _wire->endTransmission();
+  if( 0 != _wire->endTransmission() ) {
+    Serial.print("E: no LTC2943 @ ");
+    Serial.println(_i2caddr);
+    return false;
+  } else {
+    return true;
+  }
 }
 
 uint8_t OtterWorks_LTC2943::read8(byte reg) {
   uint8_t value;
   _wire->beginTransmission((uint8_t)_i2caddr);
   _wire->write((uint8_t)reg);
-  _wire->endTransmission();
-  _wire->requestFrom((uint8_t)_i2caddr, (byte)1);
-  value = _wire->read();
-  return value;
+  if( 0 == _wire->endTransmission() ) {
+    _wire->requestFrom((uint8_t)_i2caddr, (byte)1);
+    value = _wire->read();
+    return value;
+  } else {
+    Serial.print("E: no LTC2943 @ ");
+    Serial.println(_i2caddr);
+    return UINT8_MAX;
+  }
 }
 
 uint16_t OtterWorks_LTC2943::read16(byte reg) {
   uint16_t value;
   _wire->beginTransmission((uint8_t)_i2caddr);
   _wire->write((uint8_t)reg);
-  _wire->endTransmission();
-  _wire->requestFrom((uint8_t)_i2caddr, (byte)2);
-  value = (_wire->read() << 8) | _wire->read();
-  // TODO: swap reads ^ if I got the endianness backward
-  //       LTC2943 communicates BE, Arduino operates LE
-  return value;
+  if( 0 == _wire->endTransmission() ) {
+    _wire->requestFrom((uint8_t)_i2caddr, (byte)2);
+    value = (_wire->read() << 8) | _wire->read();
+    // TODO: swap reads ^ if I got the endianness backward
+    //       LTC2943 communicates BE, Arduino operates LE
+    return value;
+  } else {
+    return UINT16_MAX;
+  }
 }
 
 float OtterWorks_LTC2943::readTemperature(void) {
-  float x = (float)read16(_temperature_register);
-  return (_conversion_constant.temperature/USHRT_MAX)*x - 273.15;
+  uint16_t u = read16(_temperature_register);
+  if( u != UINT16_MAX ) {
+    return (_conversion_constant.temperature/USHRT_MAX)*(float)u - 273.15;
+  } else {
+    return NAN;
+  }
 }
 
 float OtterWorks_LTC2943::readCharge(void) {
   uint16_t u = read16(_charge_register);
-  float x = (3600.0 / 4096.0) * 50e-3 * _prescaler * u;
-  //TODO: name magic numbers ^
-  return (_conversion_constant.charge/_resistance)*x;
+  if( u != UINT16_MAX ) {
+    float x = (3600.0 / 4096.0) * 50e-3 * _prescaler * u;
+    //TODO: name magic numbers ^
+    return (_conversion_constant.charge/_resistance)*x;
+  } else {
+    return NAN;
+  }
 }
 
 float OtterWorks_LTC2943::readPotential(void) {
-  float x = (float)read16(_potential_register);
-  return (_conversion_constant.potential/USHRT_MAX)*x;
+  uint16_t u = (float)read16(_potential_register);
+  if( u != UINT16_MAX ) {
+    return (_conversion_constant.potential/USHRT_MAX)*(float)u;
+  } else {
+    return NAN;
+  }
 }
 
 float OtterWorks_LTC2943::readCurrent(void) {
   uint16_t u = read16(_current_register);
-  float x = (float)(u - SHRT_MAX)/(SHRT_MAX);
-  return (_conversion_constant.current/_resistance)*x;
+  if( u != UINT16_MAX ) {
+    float x = (float)(u - SHRT_MAX)/(SHRT_MAX);
+    return (_conversion_constant.current/_resistance)*x;
+  } else {
+    return NAN;
+  }
 }
 
 Adafruit_Sensor *OtterWorks_LTC2943::getTemperatureSensor(void) {
